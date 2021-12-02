@@ -6,10 +6,16 @@ import com.opencsv.exceptions.CsvValidationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.sql.Array;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -72,13 +78,13 @@ public class Functional {
     private<T1, T2> Map<T1, T2> formMapData(List<Item> l,
                                             Function<Item, T1> getKey,
                                             BiFunction<Item, T2, T2> reducer,
-                                            T2 def) {
+                                            Supplier<T2> def) {
         Map<T1, T2> m = new HashMap<>();
         l.forEach(i -> {
             T1 key = getKey.apply(i);
             T2 v = m.get(key);
             if (v == null) {
-                v = def;
+                v = def.get();
             }
             v = reducer.apply(i, v);
             m.put(key, v);
@@ -92,6 +98,63 @@ public class Functional {
                    var list = new ArrayList<Integer>(i.records.values());
                    var now = list.get(list.size() - 1);
                    return v + now;
-                }, 0);
+                }, () -> 0);
+    }
+
+    private int getWeek(LocalDate date) {
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int weekNumber = date.get(weekFields.weekOfWeekBasedYear());
+        return weekNumber;
+    }
+
+    public int task2Week(String country, int year, int week) {
+        return confirmed.stream().filter(i -> i.country.equals(country)).map(i ->
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.clear();
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.WEEK_OF_YEAR, week);
+            LocalDate l = LocalDate.ofInstant(calendar.toInstant(), ZoneId.systemDefault());
+            if (l.isBefore(LocalDate.of(2020, 1, 22)) ||
+                    l.isAfter(LocalDate.of(2021, 8, 16))) {
+                throw new UnsupportedOperationException("task2Week: time " +
+                        l.format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + " invalid");
+            } else {
+                return i.records.get(l.plusDays(7));
+            }
+        }).reduce(0, Integer::sum);
+    }
+
+    public int task2Month(String country, int year, int month) {
+        return confirmed.stream().filter(i -> i.country.equals(country)).map(i ->
+        {
+            LocalDate l = LocalDate.of(year, month, 1);
+            l = l.withDayOfMonth(
+                    l.getMonth().length(l.isLeapYear()));
+            if (l.isBefore(LocalDate.of(2020, 1, 22)) ||
+                    l.isAfter(LocalDate.of(2021, 8, 16))) {
+                throw new UnsupportedOperationException("task2Week: time " +
+                        l.format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + " invalid");
+            } else {
+                return i.records.get(l);
+            }
+        }).reduce(0, Integer::sum);
+    }
+
+    private int[] updateFunction(Item i, int[] v) {
+        var l = i.records.get(LocalDate.of(2020, 1, 22));
+        var h = i.records.get(LocalDate.of(2021, 8, 16));
+        v[0] += l;
+        v[1] += h;
+        return v;
+    }
+    public List<Map<String, int[]>> task3() {
+        var res = new HashMap<String, int[]>();
+        var m1 = formMapData(death, i -> i.country, this::updateFunction, () -> new int[2]);
+        var m2 = formMapData(recovered, i -> i.country, this::updateFunction, () -> new int[2]);
+        var l = new LinkedList<Map<String, int[]>>();
+        l.add(m1);
+        l.add(m2);
+        return l;
     }
 }
