@@ -6,13 +6,15 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Gui extends Frame {
     private final Functional f;
-    private JFrame anwser1Frame;
-    private void mkAnwser1() {
-        String[]columnNames={};
+    private JFrame answer1Frame;
+    private JFrame answer2Frame;
+    private JFrame answer3Frame;
 
+    private void mkAnwser1() {
         DefaultTableModel m = new DefaultTableModel();
         m.addColumn("Country");
         m.addColumn("Confirm");
@@ -24,51 +26,150 @@ public class Gui extends Frame {
         table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
         JScrollPane scrollPane = new JScrollPane(table);
         table.setFillsViewportHeight(true);
-        anwser1Frame = new JFrame("Anwser1");
-        anwser1Frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        anwser1Frame.setSize(300, 380); // size of window
+        answer1Frame = new JFrame("Answer1");
+        answer1Frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        answer1Frame.setSize(300, 380); // size of window
         // scrollPane.setOpaque(true);
-        anwser1Frame.setContentPane(scrollPane);
+        answer1Frame.setContentPane(scrollPane);
     }
-    private JFrame answer2Frame;
-    private JFrame answer3Frame;
+
     private void mkAnswer2(){
-        String[]columnNames={};
         DefaultTableModel m=new DefaultTableModel();
-        // only create a jrame for search in this function
-        Label label=new Label("Search: ");
+        Label label=new Label("Answer2");
         final JTextField jTextField=new JTextField(20);
-        jTextField.addActionListener(new ActionListener() {
+        JButton button = new JButton("View");
+        button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                mkNewAnswer2WeekData(jTextField.getText());
+                mkNewAnswersMonthData(jTextField.getText());
             }
         });
-        m.addColumn("Country");
-        m.addColumn("Year");
-        m.addColumn("Month");
-
-        answer2Frame=new JFrame("Answer2");
+        var p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.add(label);
+        p.add(jTextField);
+        p.add(button);
+        answer2Frame = new JFrame("Answer2");
+        answer2Frame.setSize(300, 300);
         answer2Frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        answer2Frame.setSize(300, 380); // size of window
-        // scrollPane.setOpaque(true);
-
-        answer3Frame=new JFrame("Answer3");
-        answer3Frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        answer3Frame.setSize(300, 380); // size of window
-        // scrollPane.setOpaque(true);
+        answer2Frame.setContentPane(p);
     }
 
     private void mkNewAnswer2WeekData(String country) {
+        DefaultTableModel m = new DefaultTableModel();
+        m.addColumn("Year/week");
+        m.addColumn("Confirmed");
+
+        var data = f.task2Week(country);
+        for (var i : data) {
+            m.addRow(i);
+        }
+        var table = new JTable(m);
+        table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+        table.setFillsViewportHeight(true);
+        var f = new JFrame("Answer2 Week");
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.setSize(300, 300);
+        f.setContentPane(scrollPane);
+        f.setVisible(true);
     }
 
     private void mkNewAnswersMonthData(String country) {
+        DefaultTableModel m = new DefaultTableModel();
+        m.addColumn("Year/month");
+        m.addColumn("Confirmed");
+
+        var data = f.task2Month(country);
+        for (var i : data) {
+            m.addRow(i);
+        }
+        var table = new JTable(m);
+        table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+        table.setFillsViewportHeight(true);
+        var f = new JFrame("Answer2 Month");
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.setSize(300, 300);
+        f.setContentPane(scrollPane);
+        f.setVisible(true);
     }
 
+    private void mkAnswer3() {
+        DefaultTableModel m = new DefaultTableModel();
+        m.addColumn("Country");
+        m.addColumn("Lowest death");
+        m.addColumn("Highest death");
+        m.addColumn("Lowest recovered");
+        m.addColumn("Highest recovered");
+
+        var res = f.task3();
+        var m1 = res.get(0);
+        var m2 = res.get(1);
+        m1.forEach((k, v) -> {
+            Object[] o = { k, v[0], v[1], m2.get(k)[0], m2.get(k)[1] };
+            m.addRow(o);
+        });
+        JTable table = new JTable(m);
+        table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+        answer3Frame = new JFrame("Answer3");
+        answer3Frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        answer3Frame.setSize(600, 380); // size of window
+        answer3Frame.setContentPane(scrollPane);
+    }
+
+    private void mkAnswer4(String country) {
+        Integer[] res = Arrays.stream(f.task4(country)).boxed().toArray(Integer[]::new);
+        DefaultTableModel m = new DefaultTableModel();
+        m.addColumn("Confirmed");
+        m.addColumn("Death");
+        m.addColumn("Recovered");
+        m.addRow(res);
+
+        JTable table = new JTable(m);
+        table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+        var f = new JFrame();
+
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.setContentPane(scrollPane);
+        f.setSize(300, 380);
+        f.setVisible(true);
+    }
+
+    private void mkAnswer5Or6(int n) {
+        var l = f.task5();
+        if (n == 5) {
+            l = f.task5();
+        } else {
+            l = f.task6();
+        }
+        DefaultTableModel m = new DefaultTableModel();
+        m.addColumn("Country");
+        m.addColumn("Confirm");
+        l.forEach(m::addRow);
+        JTable table = new JTable(m);
+        table.setPreferredScrollableViewportSize(new Dimension(70, 70)); // size of table
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+        var f = new JFrame("Answer" + (n == 5 ? "5" : "6"));
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        f.setSize(300, 380); // size of window
+        f.setContentPane(scrollPane);
+        f.setVisible(true);
+    }
 
     public Gui(Functional f) {
         this.f = f;
         mkAnwser1();
+        mkAnswer2();
+        mkAnswer3();
         JFrame homePage = new JFrame("Advanced Programming");
 
         JPanel panel = new JPanel();
@@ -89,7 +190,7 @@ public class Gui extends Frame {
 
         JLabel label2 = new JLabel("Weekly and Monthly Cases");
         label2.setFont(new Font("Serif", Font.PLAIN, 20));
-        JButton button2 = new JButton("Search");
+        JButton button2 = new JButton("Answer 2");
         JTextField textField2 = new JTextField(16);
 
         JLabel label3 = new JLabel("Total highest/lowest death and recovered Covid-19 cases");
@@ -111,31 +212,33 @@ public class Gui extends Frame {
 
         button1.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                anwser1Frame.setVisible(true);
+                answer1Frame.setVisible(true);
             }
         });
         button2.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
+                answer2Frame.setVisible(true);
             }
         });
         button3.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                System.out.println("Button 3 Clicked");
+                answer3Frame.setVisible(true);
             }
         });
         button4.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                System.out.println("Button 4 Clicked");
+                var country = textField.getText();
+                mkAnswer4(country);
             }
         });
         button5.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                System.out.println("Button 5 Clicked");
+                mkAnswer5Or6(5);
             }
         });
         button6.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
-                System.out.println("Button 6 Clicked");
+                mkAnswer5Or6(6);
             }
         });
 
