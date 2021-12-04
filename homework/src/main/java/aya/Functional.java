@@ -2,6 +2,7 @@ package aya;
 
 import com.opencsv.CSVReaderHeaderAware;
 import com.opencsv.exceptions.CsvValidationException;
+import org.jpl7.Query;
 
 import java.io.File;
 import java.io.FileReader;
@@ -23,6 +24,9 @@ public class Functional {
     private List<Item> death;
     private List<Item> confirmed;
     private List<Item> recovered;
+
+    LocalDate begin = LocalDate.of(2020, 1, 22);
+    LocalDate end = LocalDate.of(2021, 8, 16);
 
     public Functional() throws IOException {
         confirmed = readFromFile("resources/time_series_covid19_confirmed_global.csv");
@@ -107,7 +111,7 @@ public class Functional {
         return weekNumber;
     }
 
-    public int task2Week(String country, int year, int week) {
+    public int task2WeekMeta(String country, int year, int week) {
         return confirmed.stream().filter(i -> i.country.equals(country)).map(i ->
         {
             Calendar calendar = Calendar.getInstance();
@@ -125,7 +129,37 @@ public class Functional {
         }).reduce(0, Integer::sum);
     }
 
-    public int task2Month(String country, int year, int month) {
+    public List<Object[]> task2Week(String country){
+        var res = new LinkedList<Object[]>();
+        int begin2020 = getWeek(begin);
+        int end2020 = getWeek(LocalDate.of(2020, 12, 31));
+        System.out.println(begin2020);
+        for (var i = begin2020; i <= end2020; ++i){
+            Object [] o = {"2020/" + i, task2WeekMeta(country, 2020 , i)};
+            res.add(o);
+        }
+
+        int end2021 = getWeek(end.minusDays(7));
+        for (var i = 1; i <= end2021; ++i) {
+            Object[] o = {"2021/" + i, task2WeekMeta(country , 2021, i)};
+            res.add(o);
+        }
+        return res;
+    }
+
+    public List<Object[]> task2Month(String country) {
+        var res = new LinkedList<Object[]>();
+        for (var i = 1; i < 13 ; ++i) {
+            Object[] o = {"2020/" + i, task2MonthMeta(country, 2020, i)};
+            res.add(o);
+        }
+        for (var i = 1; i < 8;++i) {
+            Object[] o = {"2021/" + i, task2MonthMeta(country, 2021, i)};
+            res.add(o);
+        }
+        return res;
+    }
+    public int task2MonthMeta(String country, int year, int month) {
         return confirmed.stream().filter(i -> i.country.equals(country)).map(i ->
         {
             LocalDate l = LocalDate.of(year, month, 1);
@@ -156,5 +190,29 @@ public class Functional {
         l.add(m1);
         l.add(m2);
         return l;
+    }
+
+    public void ascendingsorting(String country){
+        Query query=new Query ("consult('C:/Users/Acer/CovidAnalysis/homework/sample2.pl').");
+        if(query.hasNext()) {
+            Query query1=new Query("insortAsc(" + country + ",Sorted).");
+
+            if(query1.hasNext()) {
+                System.out.println(query1.next().get("Sorted"));
+            }
+        }
+//        Query query = new Query("consult('C:/Users/Acer/CovidAnalysis/homework/sample2.pl').");
+//        System.out.println((query.hasSolution()) ? true : false);
+    }
+
+    public void descendingsorting(String country){
+        Query query=new Query ("consult('C:/Users/Acer/CovidAnalysis/homework/sample2.pl').");
+        if(query.hasNext()) {
+            Query query1=new Query("insortDesc(" + country + ",Sorted).");
+
+            if(query1.hasNext()) {
+                System.out.println(query1.next().get("Sorted"));
+            }
+        }
     }
 }
